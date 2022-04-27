@@ -35,7 +35,7 @@ public class HabrCareerParse {
 
                 String vacancyName = titleElement.text();
                 String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-                String[] description = retrieveDescription(link).split("\\.\s+");
+                String[] description = retrieveDescription(link).split("\\.\\s+");
                 System.out.printf("%s %s %s%n%n", date.toString(), vacancyName, link);
                 for (String s : description) {
                     System.out.println(s);
@@ -48,9 +48,8 @@ public class HabrCareerParse {
     private static String retrieveDescription(String link) {
         Connection connection = Jsoup.connect(link);
         String description = null;
-        Document document = null;
         try {
-            document = connection.get();
+           Document document = connection.get();
             Elements rows = document.select(".job_show_description__vacancy_description");
 
             for (Element row : rows) {
