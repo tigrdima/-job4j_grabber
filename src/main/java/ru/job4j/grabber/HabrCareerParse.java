@@ -12,13 +12,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 public class HabrCareerParse {
-    private static int countPages;
     private static final String SOURCE_LINK = "https://career.habr.com";
-    private static final String PAGE_LINK = String.format("%s/vacancies/java_developer?page=%d", SOURCE_LINK, countPages);
+    private static final String PAGE_LINK = "/vacancies/java_developer?page=";
 
     public static void main(String[] args) throws IOException {
-        for (countPages = 1; countPages <= 5; countPages++) {
-            Connection connection = Jsoup.connect(PAGE_LINK);
+        for (int countPages = 1; countPages <= 5; countPages++) {
+            String pageLink = String.format("%s%s%d", SOURCE_LINK, PAGE_LINK, countPages);
+            Connection connection = Jsoup.connect(pageLink);
 
             Document document = connection.get();
             Elements rows = document.select(".vacancy-card__inner");
