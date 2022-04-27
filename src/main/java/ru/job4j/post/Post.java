@@ -10,6 +10,13 @@ public class Post {
     private String description;
     private LocalDateTime created;
 
+    public Post(String title, String link, String description, LocalDateTime created) {
+        this.title = title;
+        this.link = link;
+        this.description = description;
+        this.created = created;
+    }
+
     public Post(int id, String title, String link, String description, LocalDateTime created) {
         this.id = id;
         this.title = title;
@@ -78,23 +85,12 @@ public class Post {
             return false;
         }
         Post post = (Post) o;
-        return  title.equals(post.title) && link.equals(post.link);
+        return id == post.id && link.equals(post.link);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, link);
-    }
-
-    public static void main(String[] args) {
-        Post post1 = new Post(1, "Job1", "link1", "блаблабла", LocalDateTime.now());
-        Post post2 = new Post(2, "Job1", "link1", "блаблаблабла", LocalDateTime.now());
-
-        boolean rsl = post1.equals(post2);
-        boolean rsl1 = post1.getDescription().equals(post2.getDescription());
-
-        System.out.println(rsl);
-        System.out.println(rsl1);
+        return Objects.hash(id, link);
     }
 }
 
