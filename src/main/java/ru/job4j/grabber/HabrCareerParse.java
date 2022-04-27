@@ -51,7 +51,6 @@ public class HabrCareerParse {
         try {
            Document document = connection.get();
             Elements rows = document.select(".job_show_description__vacancy_description");
-
             for (Element row : rows) {
                 Element titleElement = row.select(".style-ugc").first();
                 description = titleElement.text();
