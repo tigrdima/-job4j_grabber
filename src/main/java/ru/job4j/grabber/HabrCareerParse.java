@@ -9,6 +9,7 @@ import ru.job4j.utils.DateTimeParser;
 import ru.job4j.utils.HarbCareerDateTimeParser;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,11 @@ public class HabrCareerParse implements Parse {
 
     public HabrCareerParse(DateTimeParser dateTimeParser) {
         this.dateTimeParser = dateTimeParser;
+    }
+
+    public static void main(String[] args) throws IOException {
+        HabrCareerParse habrCareerParse = new HabrCareerParse(new HarbCareerDateTimeParser());
+        habrCareerParse.list(PAGE_LINK);
     }
 
     @Override
@@ -44,36 +50,24 @@ public class HabrCareerParse implements Parse {
                 String description = retrieveDescription(linkTitle);
                 String dateElement = dateTitleElement.child(0).attr("datetime");
 
-                posts.add(new Post(
-                        id++,
-                        titleElement.text(),
-                        linkTitle,
-                        description,
-                        dateTimeParser.parse(dateElement)
-                        )
-                );
+                posts.add(post(id++, titleElement.text(), linkTitle, description, dateTimeParser.parse(dateElement)));
             }
             countPages++;
         }
         return posts;
     }
 
-    public static void main(String[] args) throws IOException {
-        HabrCareerParse habrCareerParse = new HabrCareerParse(new HarbCareerDateTimeParser());
-        habrCareerParse.list(PAGE_LINK).forEach(System.out::println);
+    public static Post post(int id, String title, String link, String description, LocalDateTime created) {
+        return new Post(id, title, link, description, created);
     }
 
     private static String retrieveDescription(String link) {
         String description = null;
-
         try {
             Connection connection = Jsoup.connect(link);
             Document document = connection.get();
-            Elements rows = document.select(".job_show_description__vacancy_description");
-            for (Element row : rows) {
-                Element titleElement = row.select(".style-ugc").first();
-                description = titleElement.text();
-            }
+            Element descriptionTitleElement = document.selectFirst(".style-ugc");
+            description = descriptionTitleElement.text();
         } catch (IOException e) {
             e.printStackTrace();
         }
