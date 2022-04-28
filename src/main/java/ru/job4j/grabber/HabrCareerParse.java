@@ -35,18 +35,10 @@ public class HabrCareerParse implements Parse {
         for (int countPages = 1; countPages <= COUNT_PAGES; countPages++) {
             String pageLink = String.format("%s%s%d", SOURCE_LINK, link, countPages);
             Connection connection = Jsoup.connect(pageLink);
-
             try {
                 Document document = connection.get();
                 Elements rows = document.select(".vacancy-card__inner");
-
-                for (Element row : rows) {
-                    Element titleElement = row.select(".vacancy-card__title").first();
-                    Element linkElement = titleElement.child(0);
-                    Element dateTitleElement = row.select(".vacancy-card__date").first();
-
-                    posts.add(post(titleElement, linkElement, dateTitleElement));
-                }
+                    posts.add(post(rows));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -54,13 +46,21 @@ public class HabrCareerParse implements Parse {
         return posts;
     }
 
-    private Post post(Element title, Element link, Element dateTitle) {
-        String linkTitle = String.format("%s%s", SOURCE_LINK, link.attr("href"));
-        String description = retrieveDescription(linkTitle);
-        String dateElement = dateTitle.child(0).attr("datetime");
-        LocalDateTime dateTime = dateTimeParser.parse(dateElement);
+    private Post post(Elements rows) {
+        Post post = null;
+        for (Element row : rows) {
+            Element titleElement = row.select(".vacancy-card__title").first();
+            Element linkElement = titleElement.child(0);
+            Element dateTitleElement = row.select(".vacancy-card__date").first();
 
-        return new Post(title.text(), linkTitle, description, dateTime);
+            String linkTitle = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+            String description = retrieveDescription(linkTitle);
+            String dateElement = dateTitleElement.child(0).attr("datetime");
+            LocalDateTime dateTime = dateTimeParser.parse(dateElement);
+
+            post = new Post(titleElement.text(), linkTitle, description, dateTime);
+        }
+           return post;
     }
 
     private static String retrieveDescription(String link) {
