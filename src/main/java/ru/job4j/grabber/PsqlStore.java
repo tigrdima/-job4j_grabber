@@ -1,9 +1,6 @@
 package ru.job4j.grabber;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -33,6 +30,11 @@ public class PsqlStore implements Store, AutoCloseable {
             pr.setString(3, post.getDescription());
             pr.setTimestamp(4, Timestamp.valueOf(post.getCreated()));
             pr.execute();
+            try (ResultSet key = pr.getGeneratedKeys()) {
+                if (key.next()) {
+                    post.setId(key.getInt(1));
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -55,14 +57,12 @@ public class PsqlStore implements Store, AutoCloseable {
 
     @Override
     public Post findById(int id) {
-        Post post = new Post();
+        Post post = null;
         try (PreparedStatement pr = cnn.prepareStatement("select * from post where id = ?")) {
             pr.setInt(1, id);
             try (ResultSet resultSet = pr.executeQuery()) {
                 if (resultSet.next()) {
                     post = post(resultSet);
-                } else {
-                    post = null;
                 }
             }
         } catch (SQLException e) {
@@ -81,15 +81,15 @@ public class PsqlStore implements Store, AutoCloseable {
           );
     }
 
-    private static Properties properties(String properties) {
-        Properties pr = new Properties();
-        try (InputStream in = PsqlStore.class.getClassLoader().getResourceAsStream(properties)) {
-            pr.load(in);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return pr;
-    }
+//    private static Properties properties(String properties) {
+//        Properties pr = new Properties();
+//        try (InputStream in = PsqlStore.class.getClassLoader().getResourceAsStream(properties)) {
+//            pr.load(in);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return pr;
+//    }
 
     @Override
     public void close() throws Exception {
@@ -98,20 +98,20 @@ public class PsqlStore implements Store, AutoCloseable {
         }
     }
 
-    public static void main(String[] args) {
-        String pr = "aggregator_vacancy.properties";
-        PsqlStore psqlStore = new PsqlStore(properties(pr));
-        List<Post> post = List.of(
-                new Post("Java Developer", "https://career.habr.com/vacancies/1000103713",
-                        "Чем предстоит заниматься: разработка и поддержка ...", LocalDateTime.now()),
-                new Post("Java Developer", "https://career.habr.com/vacancies/1000103723",
-                        "Чем предстоит заниматься: разработка и поддержка ...", LocalDateTime.now())
-        );
-        for (Post p : post) {
-            psqlStore.save(p);
-        }
-        psqlStore.getAll().forEach(System.out::println);
-
-        System.out.println(psqlStore.findById(1));
-    }
+//    public static void main(String[] args) {
+//        String pr = "aggregator_vacancy.properties";
+//        PsqlStore psqlStore = new PsqlStore(properties(pr));
+//        List<Post> post = List.of(
+//                new Post("Java Developer", "https://career.habr.com/vacancies/1000103713",
+//                        "Чем предстоит заниматься: разработка и поддержка ...", LocalDateTime.now()),
+//                new Post("Java Developer", "https://career.habr.com/vacancies/1000103723",
+//                        "Чем предстоит заниматься: разработка и поддержка ...", LocalDateTime.now())
+//        );
+//        for (Post p : post) {
+//            psqlStore.save(p);
+//        }
+//        psqlStore.getAll().forEach(System.out::println);
+//
+//        System.out.println(psqlStore.findById(1));
+//    }
 }
