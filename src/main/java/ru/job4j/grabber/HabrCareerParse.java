@@ -23,42 +23,44 @@ public class HabrCareerParse implements Parse {
         this.dateTimeParser = dateTimeParser;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         HabrCareerParse habrCareerParse = new HabrCareerParse(new HarbCareerDateTimeParser());
-        habrCareerParse.list(PAGE_LINK);
+        habrCareerParse.list(PAGE_LINK).forEach(System.out::println);
     }
 
     @Override
-    public List<Post> list(String link) throws IOException {
+    public List<Post> list(String link) {
         List<Post> posts = new ArrayList<>();
-        int id = 0;
-        int countPages = 1;
 
-        while (countPages <= COUNT_PAGES) {
+        for (int countPages = 1; countPages <= COUNT_PAGES; countPages++) {
             String pageLink = String.format("%s%s%d", SOURCE_LINK, link, countPages);
             Connection connection = Jsoup.connect(pageLink);
 
-            Document document = connection.get();
-            Elements rows = document.select(".vacancy-card__inner");
+            try {
+                Document document = connection.get();
+                Elements rows = document.select(".vacancy-card__inner");
 
-            for (Element row : rows) {
-                Element titleElement = row.select(".vacancy-card__title").first();
-                Element linkElement = titleElement.child(0);
-                Element dateTitleElement = row.select(".vacancy-card__date").first();
+                for (Element row : rows) {
+                    Element titleElement = row.select(".vacancy-card__title").first();
+                    Element linkElement = titleElement.child(0);
+                    Element dateTitleElement = row.select(".vacancy-card__date").first();
 
-                String linkTitle = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-                String description = retrieveDescription(linkTitle);
-                String dateElement = dateTitleElement.child(0).attr("datetime");
-
-                posts.add(post(id++, titleElement.text(), linkTitle, description, dateTimeParser.parse(dateElement)));
+                    posts.add(post(titleElement, linkElement, dateTitleElement));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            countPages++;
         }
         return posts;
     }
 
-    public static Post post(int id, String title, String link, String description, LocalDateTime created) {
-        return new Post(id, title, link, description, created);
+    private Post post(Element title, Element link, Element dateTitle) {
+        String linkTitle = String.format("%s%s", SOURCE_LINK, link.attr("href"));
+        String description = retrieveDescription(linkTitle);
+        String dateElement = dateTitle.child(0).attr("datetime");
+        LocalDateTime dateTime = dateTimeParser.parse(dateElement);
+
+        return new Post(title.text(), linkTitle, description, dateTime);
     }
 
     private static String retrieveDescription(String link) {
