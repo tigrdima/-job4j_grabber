@@ -81,37 +81,10 @@ public class PsqlStore implements Store, AutoCloseable {
           );
     }
 
-//    private static Properties properties(String properties) {
-//        Properties pr = new Properties();
-//        try (InputStream in = PsqlStore.class.getClassLoader().getResourceAsStream(properties)) {
-//            pr.load(in);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return pr;
-//    }
-
     @Override
     public void close() throws Exception {
         if (cnn != null) {
             cnn.close();
         }
     }
-
-//    public static void main(String[] args) {
-//        String pr = "aggregator_vacancy.properties";
-//        PsqlStore psqlStore = new PsqlStore(properties(pr));
-//        List<Post> post = List.of(
-//                new Post("Java Developer", "https://career.habr.com/vacancies/1000103713",
-//                        "Чем предстоит заниматься: разработка и поддержка ...", LocalDateTime.now()),
-//                new Post("Java Developer", "https://career.habr.com/vacancies/1000103723",
-//                        "Чем предстоит заниматься: разработка и поддержка ...", LocalDateTime.now())
-//        );
-//        for (Post p : post) {
-//            psqlStore.save(p);
-//        }
-//        psqlStore.getAll().forEach(System.out::println);
-//
-//        System.out.println(psqlStore.findById(1));
-//    }
 }
