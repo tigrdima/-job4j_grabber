@@ -3,7 +3,6 @@ package ru.job4j.grabber;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import ru.job4j.utils.HarbCareerDateTimeParser;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
