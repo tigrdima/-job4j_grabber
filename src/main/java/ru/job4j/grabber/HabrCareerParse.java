@@ -38,7 +38,7 @@ public class HabrCareerParse implements Parse {
             try {
                 Document document = connection.get();
                 Elements rows = document.select(".vacancy-card__inner");
-                    posts.add(post(rows));
+                rows.forEach(row -> posts.add(post(row)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -46,21 +46,17 @@ public class HabrCareerParse implements Parse {
         return posts;
     }
 
-    private Post post(Elements rows) {
-        Post post = null;
-        for (Element row : rows) {
-            Element titleElement = row.select(".vacancy-card__title").first();
-            Element linkElement = titleElement.child(0);
-            Element dateTitleElement = row.select(".vacancy-card__date").first();
+    private Post post(Element row) {
+        Element titleElement = row.select(".vacancy-card__title").first();
+        Element linkElement = titleElement.child(0);
+        Element dateTitleElement = row.select(".vacancy-card__date").first();
 
-            String linkTitle = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-            String description = retrieveDescription(linkTitle);
-            String dateElement = dateTitleElement.child(0).attr("datetime");
-            LocalDateTime dateTime = dateTimeParser.parse(dateElement);
+        String linkTitle = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+        String description = retrieveDescription(linkTitle);
+        String dateElement = dateTitleElement.child(0).attr("datetime");
+        LocalDateTime dateTime = dateTimeParser.parse(dateElement);
 
-            post = new Post(titleElement.text(), linkTitle, description, dateTime);
-        }
-           return post;
+        return new Post(titleElement.text(), linkTitle, description, dateTime);
     }
 
     private static String retrieveDescription(String link) {
