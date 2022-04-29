@@ -3,15 +3,19 @@ package ru.job4j.grabber;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import ru.job4j.utils.HarbCareerDateTimeParser;
+
 import java.io.*;
-import java.util.List;
-import java.util.Properties;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.Charset;
+import java.util.*;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public class Grabber implements Grab {
+    private  static final String PAGE = "/vacancies/java_developer?page=";
     private final Properties cfg = new Properties();
 
     public Store store() {
@@ -56,11 +60,32 @@ public class Grabber implements Grab {
             JobDataMap map = context.getJobDetail().getJobDataMap();
             Store store = (Store) map.get("store");
             Parse parse = (Parse) map.get("parse");
-            List<Post> postList = parse.list("/vacancies/java_developer?page=");
-            for (Post p : postList) {
-                store.save(p);
-            }
+
+            List<Post> postList = parse.list(PAGE);
+
+            postList.forEach(store::save);
         }
+    }
+
+    public void web(Store store) {
+        new Thread(() -> {
+            try (ServerSocket server = new ServerSocket(Integer.parseInt(cfg.getProperty("port")))) {
+                while (!server.isClosed()) {
+                    Socket socket = server.accept();
+                    try (OutputStream out = socket.getOutputStream()) {
+                        out.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+                        for (Post post : store.getAll()) {
+                            out.write(post.toString().getBytes(Charset.forName("Windows-1251")));
+                            out.write(System.lineSeparator().getBytes());
+                        }
+                    } catch (IOException io) {
+                        io.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public static void main(String[] args) throws Exception {
@@ -69,6 +94,7 @@ public class Grabber implements Grab {
         Scheduler scheduler = grab.scheduler();
         Store store = grab.store();
         grab.init(new HabrCareerParse(new HarbCareerDateTimeParser()), store, scheduler);
+        grab.web(store);
     }
 
 }
