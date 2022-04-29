@@ -14,7 +14,7 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public class Grabber implements Grab {
-    private  static final String PAGE = "/vacancies/java_developer?page=";
+    public static final String PAGE = "/vacancies/java_developer?page=";
     private final Properties cfg = new Properties();
 
     public Store store() {
@@ -49,6 +49,12 @@ public class Grabber implements Grab {
                 .withSchedule(times)
                 .build();
         scheduler.scheduleJob(job, trigger);
+        try {
+            Thread.sleep(100000);
+            scheduler.shutdown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class GrabJob implements Job {
